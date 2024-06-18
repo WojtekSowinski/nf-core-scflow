@@ -23,16 +23,9 @@ process SCFLOW_DIRICHLET {
     output:
     path 'dirichlet_report', emit: dirichlet_report
 
-    script:
+    shell:
     def software = getSoftwareName(task.process)
 
-    """
-    export MC_CORES=${task.cpus}
+    template "scflow_dirichlet.r"
 
-    scflow_dirichlet.r \
-    $options.args \
-    --sce_path ${sce}
-
-    scflow_version=\$(Rscript -e 'cat(as.character(utils::packageVersion("scFlow")))'); echo "scFlow \${scflow_version}" > "scFlow_\${scflow_version}.version.txt"
-    """
 }

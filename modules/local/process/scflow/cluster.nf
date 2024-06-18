@@ -1,5 +1,5 @@
 /*
- * Single Sample QC
+ * CLUSTERING
  */
 
 // Import generic module functions
@@ -23,16 +23,7 @@ process SCFLOW_CLUSTER {
     output:
         path 'clustered_sce/'       , emit: clustered_sce, type: 'dir'
 
-    script:
-        def software = getSoftwareName(task.process)
+    shell:
+    template "scflow_cluster.r"
 
-        """
-        export MC_CORES=${task.cpus}
-
-        scflow_cluster.r \
-        $options.args \
-        --sce_path ${sce}
-
-        scflow_version=\$(Rscript -e 'cat(as.character(utils::packageVersion("scFlow")))'); echo "scFlow \${scflow_version}" > "scFlow_\${scflow_version}.version.txt"
-        """
 }

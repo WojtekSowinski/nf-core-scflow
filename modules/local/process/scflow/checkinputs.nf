@@ -25,7 +25,7 @@ process SCFLOW_CHECKINPUTS {
     output:
     path 'checked_manifest.txt', emit: checked_manifest
 
-    script:
+    shell:
     def software = getSoftwareName(task.process)
 
     """

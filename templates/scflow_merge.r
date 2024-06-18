@@ -19,7 +19,7 @@ args$plot_vars <- "!{params.merge_plot_vars}"
 args$facet_vars <- "!{params.merge_facet_vars}"
 args$outlier_vars <- "!{params.merge_outlier_vars}"
 args$species <- "!{params.species}"
-args$sce_paths <- "!{sce_paths}"
+args$sce_paths <- "!{qc_passed_sces.join(',')}"
 args$ensembl_mappings <- "!{ensembl_mappings}"
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
@@ -123,6 +123,5 @@ write_sce(
   folder_path = file.path(getwd(), "merged_sce")
 )
 
-
-##  ............................................................................
-##  Clean up                                                                ####
+scflow_version <- cat(as.character(utils::packageVersion("scFlow")))
+cat("scFlow", scflow_version, file=paste0("scFlow_",scflow_version,".version.txt"))

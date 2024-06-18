@@ -5,7 +5,13 @@
 #   ____________________________________________________________________________
 #   Initialization                                                          ####
 
-options(mc.cores = future::availableCores())
+options(mc.cores = !{task.cpus});
+Sys.setenv(MKL_NUM_THREADS=1)
+Sys.setenv(NUMEXPR_NUM_THREADS=1)
+Sys.setenv(OMP_NUM_THREADS=1)
+Sys.setenv(OPENBLAS_NUM_THREADS=1)
+Sys.setenv(VECLIB_MAXIMUM_THREADS=1)
+
 
 ##  ............................................................................
 ##  Load packages                                                           ####
@@ -18,7 +24,7 @@ library(SingleCellExperiment) # due to monocle3 missing namespace::
 ##  Parse pipeline configuration
 
 args <- {}
-args$sce_path <- "!{sce_path}"
+args$sce_path <- "!{sce}"
 args$input_reduced_dim <- "!{params.reddim_input_reduced_dim}"
 args$reduction_methods <- "!{params.reddim_reduction_methods}"
 args$vars_to_regress_out <- "!{params.reddim_vars_to_regress_out}"
@@ -55,7 +61,6 @@ args$exaggeration_factor <- !{params.reddim_tsne_exaggeration_factor}
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
 
-args <- parser$parse_args()
 args$fast_sgd <- as.logical(args$fast_sgd)
 args$input_reduced_dim <- strsplit(args$input_reduced_dim, ",")[[1]]
 args$reduction_methods <- strsplit(args$reduction_methods, ",")[[1]]
@@ -120,7 +125,5 @@ write_sce(
   write_metadata = TRUE
 )
 
-##  ............................................................................
-##  Clean up                                                                ####
-
-# Clear biomart cache
+scflow_version <- cat(as.character(utils::packageVersion("scFlow")))
+cat("scFlow", scflow_version, file=paste0("scFlow_",scflow_version,".version.txt"))

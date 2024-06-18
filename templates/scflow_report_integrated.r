@@ -5,7 +5,7 @@
 #   ____________________________________________________________________________
 #   Initialization                                                          ####
 
-options(mc.cores = future::availableCores())
+options(mc.cores = !{task.cpus});
 
 ##  ............................................................................
 ##  Load packages                                                           ####
@@ -18,7 +18,7 @@ library(knitr) # due to missing knitr:: namespace in the integrate report
 ##  Parse pipeline configuration
 
 args <- {}
-args$sce_path <- "!{sce_path}"
+args$sce_path <- "!{sce}"
 args$categorical_covariates <- "!{params.integ_categorical_covariates}"
 args$input_reduced_dim <- "!{params.integ_input_reduced_dim}"
 args$reddimplot_pointsize <- !{params.reddimplot_pointsize}
@@ -55,7 +55,5 @@ report_integrated_sce(
   report_file = "integrate_report_scflow"
 )
 
-##  ............................................................................
-##  Clean up                                                                ####
-
-# Clear biomart cache
+scflow_version <- cat(as.character(utils::packageVersion("scFlow")))
+cat("scFlow", scflow_version, file=paste0("scFlow_",scflow_version,".version.txt"))

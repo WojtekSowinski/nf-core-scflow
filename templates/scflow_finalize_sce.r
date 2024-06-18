@@ -5,13 +5,13 @@
 #   ____________________________________________________________________________
 #   Initialization                                                          ####
 
-options(mc.cores = future::availableCores())
+options(mc.cores = !{task.cpus})
 
 ##  ............................................................................
 ##  Parse pipeline configuration
 
 args <- {}
-args$sce_path <- "!{sce_path}"
+args$sce_path <- "!{sce}"
 args$celltype_mappings <- "!{celltype_mappings}"
 args$clusters_colname <- "!{params.cta_clusters_colname}"
 args$celltype_var <- "!{params.cta_celltype_var}"
@@ -173,3 +173,5 @@ write_sce(
   folder_path = file.path(getwd(), "final_sce")
 )
 
+scflow_version <- cat(as.character(utils::packageVersion("scFlow")))
+cat("scFlow", scflow_version, file=paste0("scFlow_",scflow_version,".version.txt"))

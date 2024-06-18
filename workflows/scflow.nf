@@ -98,9 +98,7 @@ workflow SCFLOW {
             header:['key', 'filepath'],
             skip: 1, sep: '\t'
             )
-        .map { row -> tuple(row.key, row.filepath) },
-        ch_input,
-        ch_ensembl_mappings
+        .map { row -> tuple(row.key, row.filepath) }
     )
 
     SCFLOW_QC (

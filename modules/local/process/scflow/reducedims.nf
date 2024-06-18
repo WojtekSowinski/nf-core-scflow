@@ -23,21 +23,9 @@ process SCFLOW_REDUCEDIMS {
     output:
     path 'reddim_sce/', emit: reddim_sce
 
-    script:
+    shell:
     def software = getSoftwareName(task.process)
 
-    """
-    export MC_CORES=${task.cpus}
-    export MKL_NUM_THREADS=1
-    export NUMEXPR_NUM_THREADS=1
-    export OMP_NUM_THREADS=1
-    export OPENBLAS_NUM_THREADS=1
-    export VECLIB_MAXIMUM_THREADS=1
+    template "scflow_reduce_dims.r"
 
-    scflow_reduce_dims.r \
-    $options.args \
-    --sce_path ${sce}
-
-    scflow_version=\$(Rscript -e 'cat(as.character(utils::packageVersion("scFlow")))'); echo "scFlow \${scflow_version}" > "scFlow_\${scflow_version}.version.txt"
-    """
 }

@@ -5,7 +5,7 @@
 #   ____________________________________________________________________________
 #   Initialization                                                          ####
 
-options(mc.cores = min(c(!{task.cpus},future::availableCores()))
+options(mc.cores = !{task.cpus})
 
 ##  ............................................................................
 ##  Load packages                                                           ####

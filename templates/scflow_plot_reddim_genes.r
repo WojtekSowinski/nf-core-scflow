@@ -5,8 +5,11 @@
 #   ____________________________________________________________________________
 #   Initialization                                                          ####
 
+options(mc.cores = !{task.cpus});
+
 ##  ............................................................................
 ##  Load packages                                                           ####
+
 library(argparse)
 library(scFlow)
 
@@ -63,13 +66,5 @@ for (reddim in args$reduction_method) {
   }
 }
 
-##  ............................................................................
-##  Save Outputs                                                            ####
-
-# Save SingleCellExperiment
-
-
-##  ............................................................................
-##  Clean up                                                                ####
-
-# Clear biomart cache
+scflow_version <- cat(as.character(utils::packageVersion("scFlow")))
+cat("scFlow", scflow_version, file=paste0("scFlow_",scflow_version,".version.txt"))

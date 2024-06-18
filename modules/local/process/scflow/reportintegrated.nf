@@ -23,17 +23,9 @@ process SCFLOW_REPORTINTEGRATED {
     output:
     path 'integration_report', emit: integration_report, type: 'dir'
 
-    script:
+    shell:
     def software = getSoftwareName(task.process)
 
+    template "scflow_report_integrated.r"
 
-    """
-    export MC_CORES=${task.cpus}
-
-    scflow_report_integrated.r \
-    $options.args \
-    --sce_path ${sce}
-
-    scflow_version=\$(Rscript -e 'cat(as.character(utils::packageVersion("scFlow")))'); echo "scFlow \${scflow_version}" > "scFlow_\${scflow_version}.version.txt"
-    """
 }

@@ -5,7 +5,8 @@
 #   ____________________________________________________________________________
 #   Initialization                                                          ####
 
-options(mc.cores = future::availableCores())
+options(mc.cores = !{task.cpus})
+system("mkdir ctd_folder && unzip !{ctd_path} -d ./ctd_folder")
 
 ##  ............................................................................
 ##  Load packages                                                           ####
@@ -16,8 +17,8 @@ library(parallel)
 ##  Parse pipeline configuration
 
 args <- {}
-args$sce_path <- "!{sce_path}"
-args$ctd_folder <- "!{ctd_folder}"
+args$sce_path <- "!{sce}"
+args$ctd_folder <- "ctd_folder"
 args$clusters_colname <- "!{params.cta_clusters_colname}"
 args$cells_to_sample <- !{params.cta_cells_to_sample}
 args$annotation_level <- !{params.cta_annotation_level}
@@ -59,7 +60,5 @@ write_sce(
   folder_path = file.path(getwd(), "celltype_mapped_sce")
 )
 
-##  ............................................................................
-##  Clean up                                                                ####
-
-# Clear biomart cache
+scflow_version <- cat(as.character(utils::packageVersion("scFlow")))
+cat("scFlow", scflow_version, file=paste0("scFlow_",scflow_version,".version.txt"))

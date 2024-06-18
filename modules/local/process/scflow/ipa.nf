@@ -24,19 +24,10 @@ process SCFLOW_IPA {
     path '*_ipa'      , emit: ipa_results , optional: true, type: 'dir'
     path '*.html'   , emit: ipa_report  , optional: true
 
-    script:
+    shell:
     de_table_basename = "${de_table.baseName}"
     def software = getSoftwareName(task.process)
 
-    """
-    export MC_CORES=${task.cpus}
+    template "scflow_ipa.r"
 
-    scflow_ipa.r \
-    $options.args \
-    --gene_file ${de_table.join(',')}
-
-    mv ipa ${de_table_basename}_ipa
-
-    scflow_version=\$(Rscript -e 'cat(as.character(utils::packageVersion("scFlow")))'); echo "scFlow \${scflow_version}" > "scFlow_\${scflow_version}.version.txt"
-    """
 }

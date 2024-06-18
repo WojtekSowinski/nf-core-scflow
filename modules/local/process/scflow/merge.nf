@@ -27,16 +27,7 @@ process SCFLOW_MERGE {
     path 'merge_summary_plots'      , emit: merge_summary_plots , type: 'dir'
     path 'merged_report'            , emit: merged_report       , type: 'dir'
 
-    script:
-    def software = getSoftwareName(task.process)
+    shell:
+    template "scflow_merge.r"
 
-    """
-
-    scflow_merge.r \
-    $options.args \
-    --sce_paths ${qc_passed_sces.join(',')} \
-    --ensembl_mappings ${ensembl_mappings} \
-
-    scflow_version=\$(Rscript -e 'cat(as.character(utils::packageVersion("scFlow")))'); echo "scFlow \${scflow_version}" > "scFlow_\${scflow_version}.version.txt"
-    """
 }

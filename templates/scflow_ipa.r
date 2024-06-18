@@ -17,7 +17,7 @@ library(dplyr)
 ##  Parse pipeline configuration
 
 args <- {}
-args$gene_file <- "!{gene_file}"
+args$gene_file <- "!{de_table.join(',')}"
 args$enrichment_tool <- "!{params.ipa_enrichment_tool}"
 args$enrichment_method <- "!{params.ipa_enrichment_method}"
 args$enrichment_database <- "!{params.ipa_enrichment_database}"
@@ -125,3 +125,8 @@ for (gene_file in args$gene_file) {
     }
   }
 }
+
+system("mv ipa !{de_table_basename}_ipa")
+
+scflow_version <- cat(as.character(utils::packageVersion("scFlow")))
+cat("scFlow", scflow_version, file=paste0("scFlow_",scflow_version,".version.txt"))

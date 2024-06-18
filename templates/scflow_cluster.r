@@ -5,7 +5,7 @@
 #   ____________________________________________________________________________
 #   Initialization                                                          ####
 
-options(mc.cores = future::availableCores())
+options(mc.cores = !{task.cpus})
 
 ##  ............................................................................
 ##  Load packages                                                           ####
@@ -18,17 +18,12 @@ library(knitr) # due to missing knitr:: namespace in the integrate report
 ##  Parse pipeline configuration
 
 args <- {}
-args$sce_path <- "!{sce_path}"
+args$sce_path <- "!{sce}"
 args$cluster_method <- "!{params.clust_cluster_method}"
 args$reduction_method <- "!{params.clust_reduction_method}"
 args$res <- !{params.clust_res}
 args$k <- !{params.clust_k}
 args$louvain_iter <- !{params.clust_louvain_iter}
-
-### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
-### Pre-process args                                                        ####
-
-args <- parser$parse_args()
 
 ##  ............................................................................
 ##  Start                                                                   ####
@@ -54,7 +49,5 @@ write_sce(
   write_metadata = TRUE
 )
 
-##  ............................................................................
-##  Clean up                                                                ####
-
-# Clear biomart cache
+scflow_version <- cat(as.character(utils::packageVersion("scFlow")))
+cat("scFlow", scflow_version, file=paste0("scFlow_",scflow_version,".version.txt"))

@@ -24,17 +24,9 @@ process SCFLOW_PLOTREDDIMGENES {
     output:
     path 'reddim_gene_plots/', emit: reddim_gene_plots
 
-    script:
+    shell:
     def software = getSoftwareName(task.process)
 
-    """
-    export MC_CORES=${task.cpus}
+    template "scflow_plot_reddim_genes.r"
 
-    scflow_plot_reddim_genes.r \
-    $options.args \
-    --sce ${sce} \
-    --reddim_genes_yml ${reddim_genes_yml}
-
-    scflow_version=\$(Rscript -e 'cat(as.character(utils::packageVersion("scFlow")))'); echo "scFlow \${scflow_version}" > "scFlow_\${scflow_version}.version.txt"
-    """
 }

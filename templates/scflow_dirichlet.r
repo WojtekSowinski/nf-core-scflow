@@ -5,7 +5,7 @@
 #   ____________________________________________________________________________
 #   Initialization                                                          ####
 
-options(mc.cores = future::availableCores())
+options(mc.cores = !{taks.cpus})
 
 ##  ............................................................................
 ##  Load packages                                                           ####
@@ -73,3 +73,6 @@ report_celltype_model(
     "dirichlet_report",
     sep = "_")
 )
+
+scflow_version <- cat(as.character(utils::packageVersion("scFlow")))
+cat("scFlow", scflow_version, file=paste0("scFlow_",scflow_version,".version.txt"))

@@ -5,7 +5,14 @@
 # ____________________________________________________________________________
 # Initialization ####
 
-options(mc.cores = max(2, future::availableCores(methods = "mc.cores")))
+options(mc.cores = max(2, !{task.cpus}))
+Sys.setenv(MC_CORES=!{task.cpus})
+Sys.setenv(MKL_NUM_THREADS=1)
+Sys.setenv(NUMEXPR_NUM_THREADS=1)
+Sys.setenv(OMP_NUM_THREADS=1)
+Sys.setenv(OPENBLAS_NUM_THREADS=1)
+Sys.setenv(VECLIB_MAXIMUM_THREADS=1)
+
 
 ## ............................................................................
 ## Load packages ####
@@ -16,7 +23,7 @@ library(parallel)
 ## Parse command-line arguments ####
 
 args <- {}
-args$sce_path <- "!{sce_path}"
+args$sce_path <- "!{sce}"
 args$method <- "!{params.integ_method}"
 args$k <- !{params.integ_k}
 args$unique_id_var <- "!{params.integ_unique_id_var}"
@@ -102,3 +109,6 @@ write_sce(
   folder_path = file.path(getwd(), "integrated_sce"),
   write_metadata = TRUE
 )
+
+scflow_version <- cat(as.character(utils::packageVersion("scFlow")))
+cat("scFlow", scflow_version, file=paste0("scFlow_",scflow_version,".version.txt"))

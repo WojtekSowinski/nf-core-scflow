@@ -5,6 +5,14 @@
 #   ____________________________________________________________________________
 #   Initialization                                                          ####
 
+options(mc.cores = !{task.cpus})
+cat("celltype: !{celltype} n_cells: !{n_cells_str}", fill=TRUE)
+Sys.setenv(MC_CORES=!{task.cpus})
+Sys.setenv(MKL_NUM_THREADS=1)
+Sys.setenv(NUMEXPR_NUM_THREADS=1)
+Sys.setenv(OMP_NUM_THREADS=1)
+Sys.setenv(OPENBLAS_NUM_THREADS=1)
+Sys.setenv(VECLIB_MAXIMUM_THREADS=1)
 
 ##  ............................................................................
 ##  Load packages                                                           ####
@@ -162,3 +170,6 @@ for (result in names(de_results)) {
     print(sprintf("No DE genes found for %s", result))
   }
 }
+
+scflow_version <- cat(as.character(utils::packageVersion("scFlow")))
+cat("scFlow", scflow_version, file=paste0("scFlow_",scflow_version,".version.txt"))
