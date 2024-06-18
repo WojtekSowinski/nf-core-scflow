@@ -8,177 +8,33 @@
 
 ##  ............................................................................
 ##  Load packages                                                           ####
-library(argparse)
 library(cli)
 # Note: scFlow is loaded after the mc.cores option is defined/overriden below
 
 ##  ............................................................................
-##  Parse command-line arguments                                            ####
+##  Parse pipeline configuration
 
-# create parser object
-parser <- ArgumentParser()
-
-# specify options
-required <- parser$add_argument_group("Required", "required arguments")
-optional <- parser$add_argument_group("Optional", "required arguments")
-
-required$add_argument(
-  "--sce",
-  help = "path to SingleCellExperiment directory",
-  metavar = "/dir/sce/",
-  required = TRUE
-)
-
-required$add_argument(
-  "--celltype",
-  help = "celltype to subset for DE analysis",
-  metavar = "DESEQ2PB",
-  required = TRUE
-)
-
-required$add_argument(
-  "--de_method",
-  help = "differential gene expression method",
-  metavar = "MAST",
-  required = TRUE
-)
-
-required$add_argument(
-  "--mast_method",
-  help = "differential gene expression sub-method for MAST",
-  metavar = "bayesglm",
-  required = TRUE
-)
-
-required$add_argument(
-  "--min_counts",
-  type = "integer",
-  default = 1,
-  help = "minimum library size (counts) per cell",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--min_cells_pc",
-  type = "double",
-  default = 0.10,
-  metavar = "N",
-  help = "minimum percentage of cells with min_counts"
-)
-
-required$add_argument(
-  "--rescale_numerics",
-  help = "rescale numeric variables in the model (lgl)",
-  metavar = "TRUE",
-  required = TRUE
-)
-
-required$add_argument(
-  "--pseudobulk",
-  help = "perform pseudobulking option (lgl)",
-  metavar = "TRUE",
-  required = TRUE
-)
-
-required$add_argument(
-  "--celltype_var",
-  help = "celltype variable",
-  metavar = "cluster_celltype",
-  required = TRUE
-)
-
-required$add_argument(
-  "--sample_var",
-  help = "sample variable",
-  metavar = "manifest",
-  required = TRUE
-)
-
-required$add_argument(
-  "--force_run",
-  help = "force run if non-full-rank (lgl)",
-  metavar = "TRUE",
-  required = TRUE
-)
-
-required$add_argument(
-  "--dependent_var",
-  help = "dependent variable",
-  metavar = "group",
-  required = TRUE
-)
-
-required$add_argument(
-  "--ref_class",
-  help = "reference class within dependent variable",
-  metavar = "Control",
-  required = TRUE
-)
-
-required$add_argument(
-  "--confounding_vars",
-  help = "confounding variables",
-  metavar = "age,sex,pc_mito",
-  required = TRUE
-)
-
-required$add_argument(
-  "--random_effects_var",
-  help = "random effects variable",
-  metavar = "individual",
-  required = TRUE
-)
-
-required$add_argument(
-  "--logFC_threshold",
-  type = "double",
-  default = 1.1,
-  metavar = "number",
-  help = "Absolute fold-change cutoff for DE [default %(default)s]"
-)
-
-required$add_argument(
-  "--padj_cutoff",
-  type = "double",
-  default = 0.05,
-  metavar = "number",
-  help = "p-value cutoff for DE [default %(default)s]"
-)
-
-required$add_argument(
-  "--n_label",
-  type = "integer",
-  default = 5,
-  metavar = "number",
-  help = "Number of genes to be highlighted on volcano plot"
-)
-
-required$add_argument(
-  "--ensembl_mappings",
-  help = "path to ensembl mappings file",
-  metavar = "tsv",
-  required = TRUE
-)
-
-required$add_argument(
-  "--species",
-  help = "the biological species (e.g. mouse, human)",
-  default = "human",
-  required = TRUE
-)
-
-required$add_argument(
-  "--max_cores",
-  default = NULL,
-  help = "override for lower cpu core usage",
-  metavar = "N",
-  required = TRUE
-)
-
-# get command line options, if help option encountered print help and exit,
-# otherwise if options not found on command line then set defaults
-args <- parser$parse_args()
+args <- {}
+args$ensembl_mappings <- "!{ensembl_mappings}"
+args$de_method <- "!{de_method}"
+args$celltype <- "!{celltype}"
+args$sce <- "!{sce}"
+args$mast_method <- "!{params.dge_mast_method}"
+args$min_counts <- !{params.dge_min_counts}
+args$min_cells_pc <- !{params.dge_min_cells_pc}
+args$rescale_numerics <- "!{params.dge_rescale_numerics}"
+args$force_run <- "!{params.dge_force_run}"
+args$pseudobulk <- "!{params.dge_pseudobulk}"
+args$celltype_var <- "!{params.dge_celltype_var}"
+args$sample_var <- "!{params.dge_sample_var}"
+args$dependent_var <- "!{params.dge_dependent_var}"
+args$ref_class <- "!{params.dge_ref_class}"
+args$confounding_vars <- "!{params.dge_confounding_vars}"
+args$random_effects_var <- "!{params.dge_random_effects_var}"
+args$padj_cutoff <- !{params.dge_padj_cutoff}
+args$logFC_threshold <- !{params.dge_logFC_threshold}
+args$species <- "!{params.species}"
+args$max_cores <- "!{params.dge_max_cores}"
 
 options("scflow_species" = args$species)
 

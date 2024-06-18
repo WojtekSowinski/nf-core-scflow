@@ -5,293 +5,47 @@
 #   ____________________________________________________________________________
 #   Initialization                                                          ####
 
-options(mc.cores = future::availableCores())
+options(mc.cores = min(c(!{task.cpus},future::availableCores()))
 
 ##  ............................................................................
 ##  Load packages                                                           ####
-library(argparse)
 library(scFlow)
-
-##  ............................................................................
-##  Parse command-line arguments                                            ####
-
-# create parser object
-parser <- ArgumentParser()
-
-# specify options
-required <- parser$add_argument_group("Required", "required arguments")
-optional <- parser$add_argument_group("Optional", "required arguments")
-
-required$add_argument(
-  "--input",
-  help = "full path to the input sample sheet tsv file",
-  metavar = "SampleSheet.tsv",
-  required = TRUE
-)
-
-required$add_argument(
-  "--key_colname",
-  help = "sample sheet column name with unique sample identifiers",
-  metavar = "manifest",
-  required = TRUE
-)
-
-required$add_argument(
-  "--key",
-  help = "unique identifier in sample sheet column specified by key_colname",
-  metavar = "hirol",
-  required = TRUE
-)
-
-required$add_argument(
-  "--factor_vars",
-  help = "sample sheet variables to treat as factors",
-  metavar = "hirol",
-  required = TRUE
-)
-
-required$add_argument(
-  "--mat_path",
-  help = "folder path of sparse matrix (cellranger output)",
-  metavar = "out",
-  required = TRUE
-)
-
-required$add_argument(
-  "--ensembl_mappings",
-  help = "path to ensembl mappings file",
-  metavar = "tsv",
-  required = TRUE
-)
-
-required$add_argument(
-  "--min_library_size",
-  type = "integer",
-  default = 300,
-  help = "minimum library size (counts) per cell",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--max_library_size",
-  help = "maximum library size (counts) per cell or adaptive",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--min_features",
-  type = "integer",
-  default = 100,
-  help = "minimum features (expressive genes) per cell",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--max_features",
-  help = "maximum features (expressive genes) per cell or adaptive",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--max_mito",
-  help = "maximum proportion of counts mapping to mt genes or adaptive",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--min_ribo",
-  type = "double",
-  default = 0.0,
-  help = "minimum proportion of counts mapping to ribosomal genes",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--max_ribo",
-  type = "double",
-  default = 1.0,
-  help = "maximum proportion of counts mapping to ribosomal genes",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--min_counts",
-  type = "integer",
-  default = 2,
-  help = "expressive genes must have >=min_counts in >=min_cells",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--min_cells",
-  type = "integer",
-  default = 2,
-  help = "expressive genes must have >=min_counts in >=min_cells",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--drop_unmapped",
-  default = "TRUE",
-  help = "drop genes which could not be mapped to gene names (lgl)",
-  required = TRUE
-)
-
-required$add_argument(
-  "--drop_mito",
-  help = "drop mitochondrial genes (lgl)",
-  metavar = "TRUE",
-  required = TRUE
-)
-
-required$add_argument(
-  "--drop_ribo",
-  help = "drop ribosomal genes (lgl)",
-  metavar = "TRUE",
-  required = TRUE
-)
-
-required$add_argument(
-  "--nmads",
-  type = "double",
-  default = 3.5,
-  help = "number of median absolute deviations for adaptive thresholding",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--find_singlets",
-  help = "run a singlet finding algorithm (lgl)",
-  metavar = "TRUE",
-  required = TRUE
-)
-
-required$add_argument(
-  "--singlets_method",
-  help = "method to identify singlets",
-  metavar = "doubletfinder",
-  required = TRUE
-)
-
-required$add_argument(
-  "--vars_to_regress_out",
-  help = "variables to regress out before finding singlets",
-  metavar = "nCount_RNA,pc_mito",
-  required = TRUE
-)
-
-required$add_argument(
-  "--pca_dims",
-  type = "integer",
-  default = 10,
-  help = "number of principal components for singlet finding",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--var_features",
-  type = "integer",
-  default = 2000,
-  help = "number of variable features for singlet finding",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--doublet_rate",
-  type = "double",
-  default = 0.075,
-  help = "estimated doublet rate",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--pK",
-  default = "NULL",
-  help = "pK value for doublet finder",
-  required = TRUE
-)
-
-required$add_argument(
-  "--dpk",
-  default = "NULL",
-  help = "doublets per thousands cells increment if doublet_rate is 0",
-  required = TRUE
-)
-
-required$add_argument(
-  "--find_cells",
-  help = "run empty drops (ambient RNA) algorithm (lgl)",
-  metavar = "TRUE",
-  required = TRUE
-)
-
-required$add_argument(
-  "--lower",
-  type = "integer",
-  default = 100,
-  help = "lower parameter for empty drops",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--retain",
-  help = "UMI count above which all barcodes are assumed to contain cells",
-  default = "NULL",
-  required = TRUE
-)
-
-required$add_argument(
-  "--alpha_cutoff",
-  type = "double",
-  default = 0.0001,
-  help = "alpha cutoff for emptyDrops algorithm",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--niters",
-  type = "integer",
-  default = 10000,
-  help = "number of iterations for the Monte Carlo p-value calculations.",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--expect_cells",
-  type = "integer",
-  help = "number of expected cells for emptydrops automated retain estimate",
-  default = 3000,
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--species",
-  help = "the biological species (e.g. mouse, human)",
-  default = "human",
-  required = TRUE
-)
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
 
-args <- parser$parse_args()
+args <- {}
+args$key_colname <- "!{params.qc_key_colname}"
+args$factor_vars <- "!{params.qc_factor_vars}"
+args$min_library_size <- !{params.qc_min_library_size}
+args$max_library_size <- "!{params.qc_max_library_size}"
+args$min_features <- !{params.qc_min_features}
+args$max_features <- "!{params.qc_max_features}"
+args$max_mito <- "!{params.qc_max_mito}"
+args$min_ribo <- !{params.qc_min_ribo}
+args$max_ribo <- !{params.qc_max_ribo}
+args$min_counts <- !{params.qc_min_counts}
+args$min_cells <- !{params.qc_min_cells}
+args$drop_unmapped <- "!{params.qc_drop_unmapped}"
+args$drop_mito <- "!{params.qc_drop_mito}"
+args$drop_ribo <- "!{params.qc_drop_ribo}"
+args$nmads <- !{params.qc_nmads}
+args$find_singlets <- "!{params.mult_find_singlets}"
+args$singlets_method <- "!{params.mult_singlets_method}"
+args$vars_to_regress_out <- "!{params.mult_vars_to_regress_out}"
+args$pca_dims <- !{params.mult_pca_dims}
+args$var_features <- !{params.mult_var_features}
+args$doublet_rate <- !{params.mult_doublet_rate}
+args$dpk <- "!{params.mult_dpk}"
+args$pK <- "!{params.mult_pK}"
+args$find_cells <- "!{params.amb_find_cells}"
+args$lower <- !{params.amb_lower}
+args$retain <- "!{params.amb_retain}"
+args$alpha_cutoff <- !{params.amb_alpha_cutoff}
+args$niters <- !{params.amb_niters}
+args$expect_cells <- "!{params.amb_expect_cells}"
+args$species <- "!{params.species}"
+
 
 options("scflow_species" = args$species)
 
@@ -351,14 +105,14 @@ if (!is.null(args$factor_vars)) {
 ##  ............................................................................
 ##  Start QC                                                                ####
 
-cli::boxx(paste0("Analysing: ", args$key), float = "center")
+cli::boxx("Analysing: !{key}", float = "center")
 
-mat <- scFlow::read_sparse_matrix(args$mat_path)
+mat <- scFlow::read_sparse_matrix("!{mat_path}")
 
 metadata <- read_metadata(
-  unique_key = args$key,
+  unique_key = "!{key}",
   key_colname = args$key_colname,
-  samplesheet_path = args$input,
+  samplesheet_path = "!{input}",
   col_classes = col_classes
 )
 
@@ -393,7 +147,7 @@ sce <- annotate_sce(
   nmads = args$nmads,
   annotate_genes = TRUE,
   annotate_cells = TRUE,
-  ensembl_mapping_file = args$ensembl_mappings,
+  ensembl_mapping_file = "!{ensembl_mappings}",
   species = args$species
 )
 
@@ -433,7 +187,7 @@ report_qc_sce(
   sce = sce,
   #report_folder_path = file.path(getwd(), "qc_report"),
   report_folder_path = file.path(getwd()),
-  report_file = paste0(args$key, "_scflow_qc_report")
+  report_file = "!{key}_scflow_qc_report"
 )
 
 print("Analysis complete, saving outputs..")
@@ -444,7 +198,7 @@ print("Analysis complete, saving outputs..")
 # Save SingleCellExperiment
 write_sce(
   sce = sce,
-  folder_path = file.path(getwd(), paste0(args$key, "_sce"))
+  folder_path = file.path(getwd(), "!{key}_sce")
 )
 
 new_dirs <- c(
@@ -460,7 +214,7 @@ for (df in names(sce@metadata$qc_plot_data)) {
   write.table(
     sce@metadata$qc_plot_data[[df]],
     file.path(getwd(), "qc_plot_data",
-              paste0(args$key, "_", df, ".tsv")),
+              paste0("!{key}", "_", df, ".tsv")),
     sep = "\t",
     col.names = TRUE, row.names = FALSE)
 }
@@ -468,15 +222,14 @@ for (df in names(sce@metadata$qc_plot_data)) {
 # Save QC summary table
 write.table(
   cbind(sce@metadata$metadata, sce@metadata$qc_summary),
-  file.path(getwd(), "qc_summary",
-            paste0(args$key, "_qc_summary.tsv")),
+  file.path(getwd(), "qc_summary", "!{key}_qc_summary.tsv"),
   sep = "\t",
   col.names = TRUE, row.names = FALSE)
 
 # Save QC plots (images)
 for (pname in names(sce@metadata$qc_plots)) {
   png(file.path(getwd(), "qc_plots",
-                paste0(args$key, "_", pname, ".png")),
+                paste0("!{key}", "_", pname, ".png")),
       width = 247, height = 170, units = "mm", res = 600)
   print(sce@metadata$qc_plots[[pname]])
   dev.off()
@@ -485,11 +238,13 @@ for (pname in names(sce@metadata$qc_plots)) {
 # Save doublet finder plots, square
 for (pname in names(sce@metadata$qc_plots$doublet_finder)) {
   png(file.path(getwd(), "qc_plots",
-                paste0(args$key, "_", pname, "_doublet_finder.png")),
+                paste0("!{key}", "_", pname, "_doublet_finder.png")),
       width = 170, height = 170, units = "mm", res = 600)
   print(sce@metadata$qc_plots$doublet_finder[[pname]])
   dev.off()
 }
 
-##  ............................................................................
-##  Clean up                                                                ####
+system("mkdir sce")
+system("mv !{key}_sce sce/")
+scflow_version <- cat(as.character(utils::packageVersion("scFlow")))
+cat("scFlow", scflow_version, file=paste0("scFlow_",scflow_version,".version.txt"))

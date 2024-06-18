@@ -9,69 +9,21 @@ options(mc.cores = future::availableCores())
 
 ##  ............................................................................
 ##  Load packages                                                           ####
-library(argparse)
 library(scFlow)
 library(parallel)
 library(SingleCellExperiment) # due to monocle3 missing namespace::
 library(knitr) # due to missing knitr:: namespace in the integrate report
 
 ##  ............................................................................
-##  Parse command-line arguments                                            ####
+##  Parse pipeline configuration
 
-# create parser object
-parser <- ArgumentParser()
-
-# specify options
-required <- parser$add_argument_group("Required", "required arguments")
-optional <- parser$add_argument_group("Optional", "required arguments")
-
-required$add_argument(
-  "--sce_path",
-  help = "-path to the SingleCellExperiment",
-  metavar = "dir",
-  required = TRUE
-)
-
-required$add_argument(
-  "--cluster_method",
-  help = "method to use for clustering",
-  metavar = "louvain",
-  required = TRUE
-)
-
-required$add_argument(
-  "--reduction_method",
-  help = "reduced dimension embedding to use for clustering",
-  metavar = "UMAP",
-  required = TRUE
-)
-
-required$add_argument(
-  "--res",
-  type = "double",
-  default = 0.00001,
-  help = "clustering resolution",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--k",
-  type = "integer",
-  default = 100,
-  help = "the number of kNN",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--louvain_iter",
-  type = "integer",
-  default = 1,
-  help = "number of iterations used for Louvain clustering",
-  metavar = "N",
-  required = TRUE
-)
+args <- {}
+args$sce_path <- "!{sce_path}"
+args$cluster_method <- "!{params.clust_cluster_method}"
+args$reduction_method <- "!{params.clust_reduction_method}"
+args$res <- !{params.clust_res}
+args$k <- !{params.clust_k}
+args$louvain_iter <- !{params.clust_louvain_iter}
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####

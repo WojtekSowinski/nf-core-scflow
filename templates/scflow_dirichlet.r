@@ -9,81 +9,29 @@ options(mc.cores = future::availableCores())
 
 ##  ............................................................................
 ##  Load packages                                                           ####
-library(argparse)
 library(scFlow)
 library(cli)
 
 ##  ............................................................................
-##  Parse command-line arguments                                            ####
+##  Parse pipeline configuration
 
-# create parser object
-parser <- ArgumentParser()
+args <- {}
+args$sce_path <- "!{sce}"
+args$unique_id_var <- "!{params.dirich_unique_id_var}"
+args$celltype_var <- "!{params.dirich_celltype_var}"
+args$dependent_var <- "!{params.dirich_dependent_var}"
+args$ref_class <- "!{params.dirich_ref_class}"
+args$var_order <- "!{params.dirich_var_order}"
+args$confounding_vars <- "!{params.dirich_confounding_vars}"
 
-# specify options
-required <- parser$add_argument_group("Required", "required arguments")
-optional <- parser$add_argument_group("Optional", "required arguments")
-
-required$add_argument(
-  "--sce_path",
-  help = "path to SingleCellExperiment directory",
-  metavar = "/dir/sce/",
-  required = TRUE
-)
-
-required$add_argument(
-  "--unique_id_var",
-  help = "unique sample variable name",
-  metavar = "manifest",
-  required = TRUE
-)
-
-required$add_argument(
-  "--celltype_var",
-  help = "celltype variable name",
-  metavar = "cluster_celltype",
-  required = TRUE
-)
-
-required$add_argument(
-  "--dependent_var",
-  help = "name of the dependent variable",
-  metavar = "group",
-  required = TRUE
-)
-
-required$add_argument(
-  "--ref_class",
-  help = "class of the reference variable withing dependent_var",
-  metavar = "control",
-  required = TRUE
-)
-
-required$add_argument(
-  "--var_order",
-  help = "factor order for dependent variable",
-  metavar = "c",
-  required = TRUE
-)
-
-required$add_argument(
-  "--confounding_vars",
-  help = "confounding variables",
-  metavar = "sex",
-  required = TRUE
-)
-
-# get command line options, if help option encountered print help and exit,
-# otherwise if options not found on command line then set defaults
-args <- parser$parse_args()
-
-if (tolower(args$var_order) == "null") { 
-  args$var_order <- NULL 
+if (tolower(args$var_order) == "null") {
+  args$var_order <- NULL
   } else {
     args$var_order <- strsplit(args$var_order, ",")[[1]]
   }
 
-if (tolower(args$confounding_vars) == "null") { 
-  args$confounding_vars <- NULL 
+if (tolower(args$confounding_vars) == "null") {
+  args$confounding_vars <- NULL
   } else {
     args$confounding_vars <- strsplit(args$confounding_vars, ",")[[1]]
   }

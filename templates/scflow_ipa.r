@@ -9,82 +9,24 @@ options(mc.cores = parallel::detectCores())
 
 ##  ............................................................................
 ##  Load packages                                                           ####
-library(argparse)
 library(scFlow)
 library(cli)
 library(dplyr)
 
 ##  ............................................................................
-##  Parse command-line arguments                                            ####
+##  Parse pipeline configuration
 
-# create parser object
-parser <- ArgumentParser()
-
-# specify options
-required <- parser$add_argument_group("Required", "required arguments")
-optional <- parser$add_argument_group("Optional", "required arguments")
-
-required$add_argument(
-  "--gene_file",
-  help = "full path to the gene file",
-  metavar = ".tsv",
-  required = TRUE,
-  default = "NULL"
-)
-
-required$add_argument(
-  "--enrichment_tool",
-  help = "one or more enrichment tools",
-  metavar = "WebGestaltR",
-  required = TRUE,
-  default = "WebGestaltR"
-)
-
-required$add_argument(
-  "--enrichment_method",
-  help = "name of the enrichment method used for webgestaltr",
-  metavar = "ORA,GSEA",
-  required = TRUE,
-  default = "ORA"
-)
-
-required$add_argument(
-  "--enrichment_database",
-  help = "name of the enrichment databases",
-  metavar = "GO_Biological_Process,Reactome,Wikipathway",
-  required = TRUE,
-  default = "GO_Biological_Process"
-)
-
-required$add_argument(
-  "--species",
-  help = "the biological species (e.g. mouse, human)",
-  default = "human",
-  required = TRUE
-)
-
-required$add_argument(
-  "--logFC_threshold",
-  type = "double",
-  default = 0.5,
-  metavar = "number",
-  help = "Absolute fold-change cutoff for DE [default %(default)s]"
-)
-
-required$add_argument(
-  "--padj_cutoff",
-  type = "double",
-  default = 0.05,
-  metavar = "number",
-  help = "p-value cutoff for DE [default %(default)s]"
-)
-
-
+args <- {}
+args$gene_file <- "!{gene_file}"
+args$enrichment_tool <- "!{params.ipa_enrichment_tool}"
+args$enrichment_method <- "!{params.ipa_enrichment_method}"
+args$enrichment_database <- "!{params.ipa_enrichment_database}"
+args$padj_cutoff <- !{params.dge_padj_cutoff}
+args$logFC_threshold <- !{params.dge_logFC_threshold}
+args$species <- "!{params.species}"
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
-
-args <- parser$parse_args()
 
 options("scflow_species" = args$species)
 

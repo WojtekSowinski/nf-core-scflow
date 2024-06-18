@@ -8,115 +8,25 @@
 options(mc.cores = future::availableCores())
 
 ##  ............................................................................
-##  Load packages                                                           ####
-library(argparse)
+##  Parse pipeline configuration
 
-##  ............................................................................
-##  Parse command-line arguments                                            ####
-
-# create parser object
-parser <- ArgumentParser()
-
-# specify options
-required <- parser$add_argument_group("Required", "required arguments")
-optional <- parser$add_argument_group("Optional", "required arguments")
-
-required$add_argument(
-  "--sce_path",
-  help = "-path to the SingleCellExperiment",
-  metavar = "dir",
-  required = TRUE
-)
-
-required$add_argument(
-  "--celltype_mappings",
-  help = "path to a tsv file with revised celltype mappings",
-  metavar = "foo/bar",
-  required = TRUE
-)
-
-required$add_argument(
-  "--clusters_colname",
-  help = "name of the column with cluster numbers",
-  metavar = "foo/bar",
-  required = TRUE
-)
-
-required$add_argument(
-  "--celltype_var",
-  help = "name of the column with celltype names",
-  metavar = "foo/bar",
-  required = TRUE
-)
-
-required$add_argument(
-  "--unique_id_var",
-  help = "name of the column with unique sample ids",
-  metavar = "foo/bar",
-  required = TRUE
-)
-
-required$add_argument(
-  "--facet_vars",
-  help = "names of variables to examine in the celltype metrics report",
-  metavar = "foo/bar",
-  required = TRUE
-)
-
-
-required$add_argument(
-  "--input_reduced_dim",
-  help = "name of the reduced dimension slot to use for plots in the report",
-  metavar = "foo/bar",
-  required = TRUE
-)
-
-required$add_argument(
-  "--metric_vars",
-  help = "names of variables to examine in the celltype metrics report",
-  metavar = "foo/bar",
-  required = TRUE
-)
-
-required$add_argument(
-  "--top_n",
-  default = 5,
-  type = "integer",
-  required = TRUE,
-  help = "The number of top marker genes",
-  metavar = "N"
-)
-
-required$add_argument(
-  "--reddimplot_pointsize",
-  default = 0.1,
-  type = "double",
-  required = TRUE,
-  help = "Point size for reduced dimension plots",
-  metavar = "N"
-)
-
-required$add_argument(
-  "--reddimplot_alpha",
-  default = 0.2,
-  type = "double",
-  required = TRUE,
-  help = "Alpha value for reduced dimension plots",
-  metavar = "N"
-)
-
-required$add_argument(
-  "--max_cores",
-  default = NULL,
-  help = "override for lower cpu core usage",
-  metavar = "N",
-  required = TRUE
-)
+args <- {}
+args$sce_path <- "!{sce_path}"
+args$celltype_mappings <- "!{celltype_mappings}"
+args$clusters_colname <- "!{params.cta_clusters_colname}"
+args$celltype_var <- "!{params.cta_celltype_var}"
+args$unique_id_var <- "!{params.cta_unique_id_var}"
+args$facet_vars <- "!{params.cta_facet_vars}"
+args$input_reduced_dim <- "!{params.clust_reduction_method}"
+args$metric_vars <- "!{params.cta_metric_vars}"
+args$top_n <- !{params.cta_top_n}
+args$reddimplot_pointsize <- !{params.reddimplot_pointsize}
+args$reddimplot_alpha <- !{params.reddimplot_alpha}
+args$max_cores <- "!{params.max_cores}"
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
 
-args <- parser$parse_args()
 args$facet_vars <- strsplit(args$facet_vars, ",")[[1]]
 args$metric_vars <- strsplit(args$metric_vars, ",")[[1]]
 

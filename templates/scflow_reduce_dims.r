@@ -15,281 +15,42 @@ library(parallel)
 library(SingleCellExperiment) # due to monocle3 missing namespace::
 
 ##  ............................................................................
-##  Parse command-line arguments                                            ####
+##  Parse pipeline configuration
 
-# create parser object
-parser <- ArgumentParser()
+args <- {}
+args$sce_path <- "!{sce_path}"
+args$input_reduced_dim <- "!{params.reddim_input_reduced_dim}"
+args$reduction_methods <- "!{params.reddim_reduction_methods}"
+args$vars_to_regress_out <- "!{params.reddim_vars_to_regress_out}"
+args$pca_dims <- !{params.reddim_umap_pca_dims}
+args$n_neighbors <- !{params.reddim_umap_n_neighbors}
+args$n_components <- !{params.reddim_umap_n_components}
+args$init <- "!{params.reddim_umap_init}"
+args$metric <- "!{params.reddim_umap_metric}"
+args$n_epochs <- !{params.reddim_umap_n_epochs}
+args$learning_rate <- !{params.reddim_umap_learning_rate}
+args$min_dist <- !{params.reddim_umap_min_dist}
+args$spread <- !{params.reddim_umap_spread}
+args$set_op_mix_ratio <- !{params.reddim_umap_set_op_mix_ratio}
+args$local_connectivity <- !{params.reddim_umap_local_connectivity}
+args$repulsion_strength <- !{params.reddim_umap_repulsion_strength}
+args$negative_sample_rate <- !{params.reddim_umap_negative_sample_rate}
+args$fast_sgd <- "!{params.reddim_umap_fast_sgd}"
+args$dims <- !{params.reddim_tsne_dims}
+args$initial_dims <- !{params.reddim_tsne_initial_dims}
+args$perplexity <- !{params.reddim_tsne_perplexity}
+args$theta <- !{params.reddim_tsne_theta}
+args$stop_lying_iter <- !{params.reddim_tsne_stop_lying_iter}
+args$mom_switch_iter <- !{params.reddim_tsne_mom_switch_iter}
+args$max_iter <- !{params.reddim_tsne_max_iter}
+args$pca_center <- "!{params.reddim_tsne_pca_center}"
+args$pca_scale <- "!{params.reddim_tsne_pca_scale}"
+args$normalize <- "!{params.reddim_tsne_normalize}"
+args$momentum <- !{params.reddim_tsne_momentum}
+args$final_momentum <- !{params.reddim_tsne_final_momentum}
+args$eta <- !{params.reddim_tsne_eta}
+args$exaggeration_factor <- !{params.reddim_tsne_exaggeration_factor}
 
-# specify options
-required <- parser$add_argument_group("Required", "required arguments")
-optional <- parser$add_argument_group("Optional", "required arguments")
-
-required$add_argument(
-  "--sce_path",
-  help = "-path to the SingleCellExperiment",
-  metavar = "dir",
-  required = TRUE
-)
-
-required$add_argument(
-  "--input_reduced_dim",
-  help = "input reducedDim to use for further dim reds",
-  metavar = "PCA,Liger",
-  required = TRUE
-)
-
-required$add_argument(
-  "--reduction_methods",
-  help = "methods to use for dimensionality reduction",
-  metavar = "PCA,tSNE,UMAP,UMAP3D",
-  required = TRUE
-)
-
-required$add_argument(
-  "--vars_to_regress_out",
-  help = "variables to regress out before finding singlets",
-  metavar = "nCount_RNA,pc_mito",
-  required = TRUE
-)
-
-required$add_argument(
-  "--pca_dims",
-  type = "integer",
-  default = 20,
-  help = "the number of PCA dimensions used",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--n_neighbors",
-  type = "integer",
-  default = 30,
-  help = "the number of nearest neighbors",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--n_components",
-  type = "integer",
-  default = 2,
-  help = "the number of UMAP dimensions (2 or 3)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--init",
-  help = "type of initialization for UMAP coordinates (uwot)",
-  metavar = "pca",
-  required = TRUE
-)
-
-required$add_argument(
-  "--metric",
-  help = "type of distance metric for nearest neighbours (uwot)",
-  metavar = "euclidean",
-  required = TRUE
-)
-
-required$add_argument(
-  "--n_epochs",
-  type = "integer",
-  default = 500,
-  help = "number of epochs for optimization of embeddings (uwot)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--learning_rate",
-  type = "double",
-  default = 1.0,
-  help = "initial learning rate used in optimization (uwot)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--min_dist",
-  type = "double",
-  default = 0.3,
-  help = "effective minimum distance between embedded points (uwot)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--spread",
-  type = "double",
-  default = 1.0,
-  help = "effective scale of embedded points (uwot)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--set_op_mix_ratio",
-  type = "double",
-  default = 1.0,
-  help = "interpolation between fuzzy union and intersection set (uwot)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--local_connectivity",
-  type = "integer",
-  default = 1,
-  help = "number of nearest neighbours assumed connected locally (uwot)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--repulsion_strength",
-  type = "double",
-  default = 1.0,
-  help = "weighting applied to negative samples in optimization (uwot)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--negative_sample_rate",
-  type = "double",
-  default = 5.0,
-  help = "number of negative edge samples per positive edge (uwot)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--fast_sgd",
-  help = "faster but less reproducible UMAP (uwot) (lgl)",
-  metavar = "FALSE",
-  required = TRUE
-)
-
-required$add_argument(
-  "--dims",
-  type = "integer",
-  default = 30,
-  help = "the number of dimensions to output (rtsne)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--initial_dims",
-  type = "integer",
-  default = 50,
-  help = "the number of dimensions retained in the PCA init (rtsne)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--perplexity",
-  type = "integer",
-  default = 30,
-  help = "perplexity parameter (rtsne)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--theta",
-  type = "double",
-  default = 0.5,
-  help = "speed / accuracy trade-off (increase for less accuracy) (rtsne)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--max_iter",
-  type = "integer",
-  default = 1000,
-  help = "number of iterations (rtsne)",
-  metavar = "N",
-  required = TRUE
-)
-required$add_argument(
-  "--pca_center",
-  help = "should data be centered before pca (rtsne) (lgl)",
-  metavar = "TRUE",
-  required = TRUE
-)
-
-required$add_argument(
-  "--pca_scale",
-  help = "should data be scaled before pca (rtsne) (lgl)",
-  metavar = "FALSE",
-  required = TRUE
-)
-
-required$add_argument(
-  "--normalize",
-  help = "should data be normalized before distance calculations (rtsne) (lgl)",
-  metavar = "TRUE",
-  required = TRUE
-)
-
-required$add_argument(
-  "--stop_lying_iter",
-  type = "integer",
-  default = 250,
-  help = "iteration after which perplexities are no longer exaggerated (rtsne)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--mom_switch_iter",
-  type = "integer",
-  default = 250,
-  help = "iteration after which final momentum is used (rtsne)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--momentum",
-  type = "double",
-  default = 0.5,
-  help = "momentum used in the first part of the optimization (rtsne)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--final_momentum",
-  type = "double",
-  default = 0.8,
-  help = "momentum used in the final part of the optimization (rtsne)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--eta",
-  type = "double",
-  default = 200.0,
-  help = "learning rate (rtsne)",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--exaggeration_factor",
-  type = "double",
-  default = 12.0,
-  help = "Exaggeration factor used in early optimization (rtsne)",
-  metavar = "N",
-  required = TRUE
-)
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####

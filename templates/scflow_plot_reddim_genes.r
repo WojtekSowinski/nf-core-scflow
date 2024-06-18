@@ -13,56 +13,16 @@ library(scFlow)
 ##  ............................................................................
 ##  Parse command-line arguments                                            ####
 
-# create parser object
-parser <- ArgumentParser()
-
-# specify options
-required <- parser$add_argument_group("Required", "required arguments")
-optional <- parser$add_argument_group("Optional", "required arguments")
-
-required$add_argument(
-  "--sce_path",
-  help = "-path to the SingleCellExperiment",
-  metavar = "dir",
-  required = TRUE
-)
-
-required$add_argument(
-  "--reddim_genes_yml",
-  help = "-path to the yml file with genes of interest",
-  metavar = "dir",
-  required = TRUE
-)
-
-required$add_argument(
-  "--reduction_methods",
-  help = "reduced dimension embedding(s) to use for plots",
-  metavar = "UMAP",
-  required = TRUE
-)
-
-required$add_argument(
-  "--reddimplot_pointsize",
-  default = 0.1,
-  type = "double",
-  required = TRUE,
-  help = "Point size for reduced dimension plots",
-  metavar = "N"
-)
-
-required$add_argument(
-  "--reddimplot_alpha",
-  default = 0.2,
-  type = "double",
-  required = TRUE,
-  help = "Alpha value for reduced dimension plots",
-  metavar = "N"
-)
+args <- {}
+args$sce_path <- "!{sce}"
+args$reddim_genes_yml <- "!{reddim_genes_yml}"
+args$reduction_methods <- "!{params.plotreddim_reduction_methods}"
+args$reddimplot_pointsize <- !{params.reddimplot_pointsize}
+args$reddimplot_alpha <- !{params.reddimplot_alpha}
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
 
-args <- parser$parse_args()
 args$reduction_methods <- strsplit(args$reduction_methods, ",")[[1]]
 options("scflow_reddimplot_pointsize" = args$reddimplot_pointsize)
 options("scflow_reddimplot_alpha" = args$reddimplot_alpha)

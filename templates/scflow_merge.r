@@ -7,74 +7,23 @@
 
 ##  ............................................................................
 ##  Load packages                                                           ####
-library(argparse)
 library(scFlow)
 library(SingleCellExperiment) # due to monocle3 missing namespace::
 
 ##  ............................................................................
-##  Parse command-line arguments                                            ####
+##  Parse configuration
 
-# create parser object
-parser <- ArgumentParser()
-
-# specify options
-required <- parser$add_argument_group("Required", "required arguments")
-optional <- parser$add_argument_group("Optional", "required arguments")
-
-required$add_argument(
-  "--sce_paths",
-  help = "-paths to SingleCellExperiment folders",
-  metavar = "dir,dir2",
-  required = TRUE
-)
-
-required$add_argument(
-  "--ensembl_mappings",
-  help = "path to ensembl mappings file",
-  metavar = "tsv",
-  required = TRUE
-)
-
-required$add_argument(
-  "--unique_id_var",
-  help = "unique id variable",
-  metavar = "manifest",
-  required = TRUE
-)
-
-required$add_argument(
-  "--plot_vars",
-  help = "variables to plot",
-  metavar = "total_features_by_counts,pc_mito",
-  required = TRUE
-)
-
-required$add_argument(
-  "--facet_vars",
-  help = "variables to facet/subset by",
-  metavar = "total_features_by_counts,pc_mito",
-  required = TRUE
-)
-
-required$add_argument(
-  "--outlier_vars",
-  help = "variables to apply adaptive thresholding",
-  metavar = "total_features_by_counts,total_counts",
-  required = TRUE
-)
-
-required$add_argument(
-  "--species",
-  help = "the biological species (e.g. mouse, human)",
-  default = "human",
-  required = TRUE
-)
-
+args <- {}
+args$unique_id_var <- "!{params.qc_key_colname}"
+args$plot_vars <- "!{params.merge_plot_vars}"
+args$facet_vars <- "!{params.merge_facet_vars}"
+args$outlier_vars <- "!{params.merge_outlier_vars}"
+args$species <- "!{params.species}"
+args$sce_paths <- "!{sce_paths}"
+args$ensembl_mappings <- "!{ensembl_mappings}"
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
-
-args <- parser$parse_args()
 
 options("scflow_species" = args$species)
 

@@ -9,90 +9,24 @@ options(mc.cores = future::availableCores())
 
 ##  ............................................................................
 ##  Load packages                                                           ####
-library(argparse)
 library(scFlow)
 library(parallel)
 
 ##  ............................................................................
-##  Parse command-line arguments                                            ####
+##  Parse pipeline configuration
 
-# create parser object
-parser <- ArgumentParser()
-
-# specify options
-required <- parser$add_argument_group("Required", "required arguments")
-optional <- parser$add_argument_group("Optional", "required arguments")
-
-required$add_argument(
-  "--sce_path",
-  help = "-path to the SingleCellExperiment",
-  metavar = "dir",
-  required = TRUE
-)
-
-required$add_argument(
-  "--ctd_folder",
-  help = "path to a folder containing ewce ctd files",
-  metavar = "foo/bar",
-  required = TRUE
-)
-
-required$add_argument(
-  "--clusters_colname",
-  help = "the sce colData variable storing cluster numbers",
-  metavar = "foo/bar",
-  required = TRUE
-)
-
-required$add_argument(
-  "--cells_to_sample",
-  type = "integer",
-  default = 10000,
-  help = "the number of cells to sample with ewce",
-  metavar = "N",
-  required = TRUE
-)
-
-required$add_argument(
-  "--annotation_level",
-  default = 1,
-  type = "integer",
-  help = "the annotation level of the reference ctd",
-  required = TRUE,
-  metavar = "N"
-)
-
-required$add_argument(
-  "--species",
-  help = "the biological species (e.g. mouse, human)",
-  default = "human",
-  required = TRUE
-)
-
-required$add_argument(
-  "--reddimplot_pointsize",
-  default = 0.1,
-  type = "double",
-  required = TRUE,
-  help = "Point size for reduced dimension plots",
-  metavar = "N"
-)
-
-required$add_argument(
-  "--reddimplot_alpha",
-  default = 0.2,
-  type = "double",
-  required = TRUE,
-  help = "Alpha value for reduced dimension plots",
-  metavar = "N"
-)
-
-
+args <- {}
+args$sce_path <- "!{sce_path}"
+args$ctd_folder <- "!{ctd_folder}"
+args$clusters_colname <- "!{params.cta_clusters_colname}"
+args$cells_to_sample <- !{params.cta_cells_to_sample}
+args$annotation_level <- !{params.cta_annotation_level}
+args$species <- "!{params.species}"
+args$reddimplot_pointsize <- !{params.reddimplot_pointsize}
+args$reddimplot_alpha <- !{params.reddimplot_alpha}
 
 ### . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ..
 ### Pre-process args                                                        ####
-
-args <- parser$parse_args()
 
 options("scflow_species" = args$species)
 options("scflow_reddimplot_pointsize" = args$reddimplot_pointsize)
